@@ -9,5 +9,72 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+
+    <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCNMml7f6jlNyyyRtuiOi9A1yU3jPhSYI8",
+  authDomain: "data1-210b2.firebaseapp.com",
+  projectId: "data1-210b2",
+  storageBucket: "data1-210b2.firebasestorage.app",
+  messagingSenderId: "751379869160",
+  appId: "1:751379869160:web:3873201d31038ed86cc85d",
+  measurementId: "G-LCMGDG65ZV"
+};
+
+const siteId = "Hsr9BUaCHwudgqp2b9mS";
+
+try {
+  const app = initializeApp(firebaseConfig, "castiel-" + siteId);
+  const db = getFirestore(app);
+  const key = "castiel-visitor-" + siteId;
+
+  function visitorId() {
+    try {
+      let id = localStorage.getItem(key);
+
+      if (!id) {
+        id = crypto.randomUUID();
+        localStorage.setItem(key, id);
+      }
+
+      return id;
+    } catch {
+      return Math.random().toString(36).slice(2) +
+        Date.now().toString(36);
+    }
+  }
+
+  const rawHost = location.hostname.toLowerCase();
+  const host = rawHost.startsWith("www.")
+    ? rawHost.slice(4)
+    : rawHost;
+
+  const page = location.pathname + location.search;
+
+  if (host && page.length <= 1500) {
+    addDoc(collection(db, "analyticsEvents"), {
+      siteId,
+      page,
+      pageHost: host,
+      visitorId: visitorId(),
+      referrer: document.referrer.slice(0, 1500),
+      createdAt: serverTimestamp()
+    }).catch((error) => {
+      console.error("Castiel tracking failed:", error);
+    });
+  }
+} catch (error) {
+  console.error("Castiel Analytics initialization failed:", error);
+}
+</script>
+
   </body>
 </html>
